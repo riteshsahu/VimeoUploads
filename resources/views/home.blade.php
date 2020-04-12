@@ -8,7 +8,7 @@
                 <div class="card-header">Vimeo Upload Video</div>
 
                 <div class="card-body">
-                    <button class="btn btn-primary">Upload Video</button>
+                    <uppy-uploader></uppy-uploader>
                 </div>
             </div>
         </div>

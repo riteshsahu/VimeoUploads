@@ -12,9 +12,13 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    return view('home');
+})->middleware('auth');
 
 Auth::routes();
 
-Route::get('/home', 'HomeController@index')->name('home');
+// auto upload/store file to temporary storage path
+Route::post('/video/upload', 'VideoController@upload');
+
+// store form information and move file to permanent storage path
+Route::post('/store', 'VideoController@store');
