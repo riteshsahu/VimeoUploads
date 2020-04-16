@@ -1,8 +1,5 @@
 <template>
     <div>
-        <button id="uppy-select-files" class="btn btn-primary">
-            Upload Video
-        </button>
         <div
             class="alert mt-3"
             :class="'alert-' + status.type"
@@ -11,11 +8,21 @@
             v-text="status.description"
         ></div>
 
-        <form>
-            <div class="form-group">
-                <div ref="dashboardContainer"></div>
-            </div>
-        </form>
+        <div class="form-group">
+            <div ref="dashboardContainer"></div>
+        </div>
+
+        <div class="text-right">
+            <button
+                @click="startUpload()"
+                :disabled="isUploadInProgress"
+                id="uppy-select-files"
+                class="btn btn-primary"
+                :class="!isUploadInProgress ? 'btn-primary' : 'btn-secondary'"
+            >
+                Upload Video
+            </button>
+        </div>
     </div>
 </template>
 
@@ -39,7 +46,8 @@ export default {
             uploadLink: "",
             selectedFile: null,
             uploadOffset: 0,
-            checkProgressInterval: 0
+            checkProgressInterval: 0,
+            isUploadInProgress: false
         };
     },
     mounted() {
@@ -58,19 +66,16 @@ export default {
             })
                 .use(Dashboard, {
                     hideUploadButton: false,
-                    height: 450,
+                    height: 300,
+                    inline: true,
                     target: this.$refs.dashboardContainer,
                     replaceTargetContent: true,
                     showProgressDetails: true,
                     browserBackButtonClose: true,
-                    closeModalOnClickOutside: true
+                    closeModalOnClickOutside: true,
+                    hideUploadButton: true
                 })
-                .use(Tus, {
-                    uploadUrl: this.uploadLink,
-                    resume: true,
-                    autoRetry: true,
-                    retryDelays: [0, 1000, 3000, 5000]
-                });
+                
 
             this.uppy.on("upload", async data => {
                 // data object consists of `id` with upload ID and `fileIDs` array
@@ -79,7 +84,7 @@ export default {
                 console.log(
                     `Starting upload id: ${data.id}, fileIDs: ${data.fileIDs}`
                 );
-                await this.getUploadLink();
+                // await this.getUploadLink();
                 console.log("upload link", this.uploadLink);
             });
 
@@ -96,10 +101,13 @@ export default {
 
             this.uppy.on("upload-success", (file, response) => {
                 console.log("upload-success", file.name, response.uploadURL);
+                this.selectedFile = null;
+                this.isUploadInProgress = false;
             });
 
             this.uppy.on("upload-error", (file, error, response) => {
                 console.log("error with file:", file.id);
+                this.isUploadInProgress = false;
                 console.log("error message:", error);
             });
 
@@ -109,6 +117,8 @@ export default {
 
             this.uppy.on("complete", event => {
                 console.log("complted", event);
+                this.isUploadInProgress = false;
+                this.selectedFile = null;
 
                 if (event.successful[0] !== undefined) {
                     // this.payload = event.successful[0].response.body.path;
@@ -135,6 +145,22 @@ export default {
         setStatus(type, description) {
             this.status = { type, description };
             return this;
+        },
+
+        startUpload() {
+            this.isUploadInProgress = true;
+            this.getUploadLink()
+            .then(uploadLink => {
+                this.uploadLink = uploadLink;
+                console.log("startupload", uploadLink, this.uploadLink)
+                this.uppy.use(Tus, {
+                    uploadUrl: uploadLink,
+                    resume: true,
+                    autoRetry: true,
+                    retryDelays: [0, 1000, 3000, 5000]
+                });
+                this.uppy.upload();
+            });
         },
 
         getUploadLink() {
