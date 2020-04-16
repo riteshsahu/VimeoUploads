@@ -14,11 +14,11 @@
 Route::get('/', function () {
     return view('home');
 })->middleware('auth');
-
 Auth::routes();
 
 // auto upload/store file to temporary storage path
 Route::post('/video/upload', 'VideoController@upload');
 
 // store form information and move file to permanent storage path
+Route::post('/videos/uploadLink', 'VideoController@getUploadLink');
 Route::post('/store', 'VideoController@store');
