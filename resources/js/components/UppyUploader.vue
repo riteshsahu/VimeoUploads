@@ -83,7 +83,11 @@ export default {
                     autoRetry: true,
                     retryDelays: [0, 1000, 3000, 5000],
                     metaFields: null,
-                    limit: 1
+                    limit: 1,
+                    headers: {
+                        Accept: "application/vnd.vimeo.*+json;version=3.4"
+                    }, 
+                    chunkSize: 4194304
                 });
 
             this.uppy.on("upload", async data => {

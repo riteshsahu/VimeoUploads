@@ -47,7 +47,7 @@ class VideoController extends Controller
                     "size" => $request->header('upload-length'),
                     
                 ],
-                "name" => $parsedMetadata['filename']
+                "name" => substr($parsedMetadata['filename'], 0, 127)
             ],
             'POST'
         );
