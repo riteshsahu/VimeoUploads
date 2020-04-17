@@ -20,5 +20,5 @@ Auth::routes();
 Route::post('/video/upload', 'VideoController@upload');
 
 // store form information and move file to permanent storage path
-Route::post('/videos/uploadLink', 'VideoController@getUploadLink');
+Route::post('/me/videos', 'VideoController@getUploadLink');
 Route::post('/store', 'VideoController@store');

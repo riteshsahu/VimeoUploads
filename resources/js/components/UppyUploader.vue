@@ -18,7 +18,9 @@
                 :disabled="isUploadButtonDisabled"
                 id="uppy-select-files"
                 class="btn"
-                :class="isUploadButtonDisabled ? 'btn-secondary' : 'btn-primary'"
+                :class="
+                    isUploadButtonDisabled ? 'btn-secondary' : 'btn-primary'
+                "
             >
                 Upload Video
             </button>
@@ -75,7 +77,14 @@ export default {
                     closeModalOnClickOutside: true,
                     hideUploadButton: true
                 })
-                
+                .use(Tus, {
+                    endpoint: "/me/videos",
+                    resume: true,
+                    autoRetry: true,
+                    retryDelays: [0, 1000, 3000, 5000],
+                    metaFields: null,
+                    limit: 1
+                });
 
             this.uppy.on("upload", async data => {
                 // data object consists of `id` with upload ID and `fileIDs` array
@@ -84,8 +93,6 @@ export default {
                 console.log(
                     `Starting upload id: ${data.id}, fileIDs: ${data.fileIDs}`
                 );
-                // await this.getUploadLink();
-                console.log("upload link", this.uploadLink);
             });
 
             this.uppy.on("upload-progress", (file, progress) => {
@@ -120,11 +127,6 @@ export default {
                 console.log("complted", event);
                 this.isUploadButtonDisabled = false;
                 this.selectedFile = null;
-
-                if (event.successful[0] !== undefined) {
-                    // this.payload = event.successful[0].response.body.path;
-                    // this.confirmUpload();
-                }
             });
 
             this.uppy.on("dashboard:modal-open", () => {
@@ -152,61 +154,9 @@ export default {
 
         startUpload() {
             this.isUploadButtonDisabled = true;
-            this.getUploadLink()
-            .then(uploadLink => {
-                this.uploadLink = uploadLink;
-                console.log("startupload", uploadLink, this.uploadLink)
-                this.uppy.use(Tus, {
-                    uploadUrl: uploadLink,
-                    resume: true,
-                    autoRetry: true,
-                    retryDelays: [0, 1000, 3000, 5000],
-                    headers: {
-                        "Accept": "application/vnd.vimeo.*+json;version=3.4"
-                    }
-                });
-                this.uppy.upload();
-            })
-            .catch(err => {
-                console.log(err);
-            })
+            this.uppy.upload();
         },
 
-        getUploadLink() {
-            return axios
-                .post(
-                    "/videos/uploadLink",
-                    { ...this.selectedFile },
-                    {
-                        headers: {
-                            "X-CSRF-TOKEN": document
-                                .querySelector('meta[name="csrf-token"]')
-                                .getAttribute("content")
-                        }
-                    }
-                )
-                .then(res => {
-                    if (res.data) {
-                        const data = res.data.body;
-                        console.log("uploadLink Data", data);
-                        return data.upload.upload_link;
-                    }
-                })
-                .catch(err => {
-                    throw err;
-                });
-        },
-
-        closeModal() {
-            this.uppy.getPlugin("Dashboard").closeModal();
-            return this;
-        },
-
-        updatePreviewPath({ path }) {
-            this.previewPath = path;
-
-            return this;
-        },
         resetUploader() {
             this.uppy.reset();
             return this;

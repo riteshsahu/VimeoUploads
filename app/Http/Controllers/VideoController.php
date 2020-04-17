@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Traits\UppyUploaderTrait;
 use Illuminate\Support\Facades\Storage;
 use Vimeo\Laravel\Facades\Vimeo;
+use Illuminate\Support\Str;
 
 class VideoController extends Controller
 {
@@ -29,22 +30,29 @@ class VideoController extends Controller
     {
 
         // Create the Video
+        $uploadMetadata = $request->header("upload-metadata");
+        $uploadMetadata = explode(',', $uploadMetadata);
+        $parsedMetadata = [];
+
+        foreach ($uploadMetadata as $metaData) {
+            $data = explode(' ', $metaData);
+            $parsedMetadata[$data[0]] = $data[1];
+        }
+
         $video_response =  Vimeo::request(
             '/me/videos',
             [
                 'upload' => [
                     'approach' => 'tus',
-                    "size" => $request->input('size'),
+                    "size" => $request->header('upload-length'),
                     
                 ],
-                "name" => $request->input('name')
+                "name" => $parsedMetadata['filename']
             ],
             'POST'
         );
 
-        // dump("video response", $video_response);
-
-        return response()->json($video_response);
+        // return response()->json($video_response["body"]["upload"]["upload_link"]);
+        return response()->json()->header('Location', $video_response["body"]["upload"]["upload_link"]);
     }
-
 }
