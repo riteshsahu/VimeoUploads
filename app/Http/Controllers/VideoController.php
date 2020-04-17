@@ -34,8 +34,10 @@ class VideoController extends Controller
             [
                 'upload' => [
                     'approach' => 'tus',
-                    "size" => $request->input('size')
+                    "size" => $request->input('size'),
+                    
                 ],
+                "name" => $request->input('name')
             ],
             'POST'
         );

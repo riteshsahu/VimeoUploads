@@ -15,10 +15,10 @@
         <div class="text-right">
             <button
                 @click="startUpload()"
-                :disabled="isUploadInProgress"
+                :disabled="isUploadButtonDisabled"
                 id="uppy-select-files"
-                class="btn btn-primary"
-                :class="!isUploadInProgress ? 'btn-primary' : 'btn-secondary'"
+                class="btn"
+                :class="isUploadButtonDisabled ? 'btn-secondary' : 'btn-primary'"
             >
                 Upload Video
             </button>
@@ -47,7 +47,7 @@ export default {
             selectedFile: null,
             uploadOffset: 0,
             checkProgressInterval: 0,
-            isUploadInProgress: false
+            isUploadButtonDisabled: true
         };
     },
     mounted() {
@@ -97,17 +97,18 @@ export default {
                     progress.bytesUploaded,
                     progress.bytesTotal
                 );
+                this.uploadOffset = progress.bytesUploaded;
             });
 
             this.uppy.on("upload-success", (file, response) => {
                 console.log("upload-success", file.name, response.uploadURL);
                 this.selectedFile = null;
-                this.isUploadInProgress = false;
+                this.isUploadButtonDisabled = false;
             });
 
             this.uppy.on("upload-error", (file, error, response) => {
                 console.log("error with file:", file.id);
-                this.isUploadInProgress = false;
+                this.isUploadButtonDisabled = false;
                 console.log("error message:", error);
             });
 
@@ -117,7 +118,7 @@ export default {
 
             this.uppy.on("complete", event => {
                 console.log("complted", event);
-                this.isUploadInProgress = false;
+                this.isUploadButtonDisabled = false;
                 this.selectedFile = null;
 
                 if (event.successful[0] !== undefined) {
@@ -133,11 +134,13 @@ export default {
             this.uppy.on("file-added", file => {
                 console.log("file-added", file);
                 this.selectedFile = file;
+                this.isUploadButtonDisabled = false;
                 console.log("this.selectedFile", this.selectedFile);
             });
 
             this.uppy.on("file-removed", file => {
                 this.selectedFile = null;
+                this.isUploadButtonDisabled = true;
                 console.log("Removed file", file);
             });
         },
@@ -148,7 +151,7 @@ export default {
         },
 
         startUpload() {
-            this.isUploadInProgress = true;
+            this.isUploadButtonDisabled = true;
             this.getUploadLink()
             .then(uploadLink => {
                 this.uploadLink = uploadLink;
@@ -157,10 +160,16 @@ export default {
                     uploadUrl: uploadLink,
                     resume: true,
                     autoRetry: true,
-                    retryDelays: [0, 1000, 3000, 5000]
+                    retryDelays: [0, 1000, 3000, 5000],
+                    headers: {
+                        "Accept": "application/vnd.vimeo.*+json;version=3.4"
+                    }
                 });
                 this.uppy.upload();
-            });
+            })
+            .catch(err => {
+                console.log(err);
+            })
         },
 
         getUploadLink() {
