@@ -1,13 +1,5 @@
 <template>
     <div>
-        <div
-            class="alert mt-3"
-            :class="'alert-' + status.type"
-            role="alert"
-            v-show="status.description"
-            v-text="status.description"
-        ></div>
-
         <div class="form-group">
             <div ref="dashboardContainer"></div>
         </div>
@@ -38,17 +30,7 @@ import Tus from "@uppy/tus";
 export default {
     data() {
         return {
-            payload: null,
-            previewPath: null,
-            disabled: true,
-            status: {
-                type: "",
-                description: ""
-            },
-            uploadLink: "",
             selectedFile: null,
-            uploadOffset: 0,
-            checkProgressInterval: 0,
             isUploadButtonDisabled: true
         };
     },
@@ -90,81 +72,35 @@ export default {
                     // chunkSize: 4194304
                 });
 
-            this.uppy.on("upload", async data => {
-                // data object consists of `id` with upload ID and `fileIDs` array
-                // with file IDs in current upload
-                // data: { id, fileIDs }
-                console.log(
-                    `Starting upload id: ${data.id}, fileIDs: ${data.fileIDs}`
-                );
-            });
-
-            this.uppy.on("upload-progress", (file, progress) => {
-                // file: { id, name, type, ... }
-                // progress: { uploader, bytesUploaded, bytesTotal }
-                console.log(
-                    "upload-progress",
-                    file.id,
-                    progress.bytesUploaded,
-                    progress.bytesTotal
-                );
-                this.uploadOffset = progress.bytesUploaded;
-            });
-
             this.uppy.on("upload-success", (file, response) => {
-                console.log("upload-success", file.name, response.uploadURL);
                 this.selectedFile = null;
                 this.isUploadButtonDisabled = false;
             });
 
             this.uppy.on("upload-error", (file, error, response) => {
-                console.log("error with file:", file.id);
                 this.isUploadButtonDisabled = false;
-                console.log("error message:", error);
-            });
-
-            this.uppy.on("upload-retry", fileID => {
-                console.log("upload retried:", fileID);
             });
 
             this.uppy.on("complete", event => {
-                console.log("complted", event);
                 this.isUploadButtonDisabled = false;
                 this.selectedFile = null;
             });
 
-            this.uppy.on("dashboard:modal-open", () => {
-                this.setStatus("", "");
-            });
-
             this.uppy.on("file-added", file => {
-                console.log("file-added", file);
                 this.selectedFile = file;
                 this.isUploadButtonDisabled = false;
-                console.log("this.selectedFile", this.selectedFile);
             });
 
             this.uppy.on("file-removed", file => {
                 this.selectedFile = null;
                 this.isUploadButtonDisabled = true;
-                console.log("Removed file", file);
             });
-        },
-
-        setStatus(type, description) {
-            this.status = { type, description };
-            return this;
         },
 
         startUpload() {
             this.isUploadButtonDisabled = true;
             this.uppy.upload();
         },
-
-        resetUploader() {
-            this.uppy.reset();
-            return this;
-        }
     }
 };
 </script>

@@ -40,7 +40,7 @@ class VideoController extends Controller
         try {
             $videoData = [
                 'user_id' => auth()->user()->id,
-                "name" => $parsedMetadata['filename'],
+                "name" => substr($parsedMetadata['filename'], 0, 250),
                 "url" => $video_response["body"]["link"],
             ];
 
