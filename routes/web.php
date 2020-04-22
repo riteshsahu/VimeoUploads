@@ -16,9 +16,6 @@ Route::get('/', function () {
 })->middleware('auth');
 Auth::routes();
 
-// auto upload/store file to temporary storage path
-Route::post('/video/upload', 'VideoController@upload');
 
-// store form information and move file to permanent storage path
-Route::post('/me/videos', 'VideoController@getUploadLink');
-Route::post('/store', 'VideoController@store');
+Route::post('/me/videos', 'VideoController@store');
+Route::patch('/me/videos/{video}', 'VideoController@update');

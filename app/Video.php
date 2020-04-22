@@ -6,12 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class Video extends Model
 {
-    protected $fillable = ['url'];
-
-    public static function publishNewVideo($url)
-    {
-        return static::create([
-            'url' => $url
-        ]);
-    }
+    protected $fillable = ['url', 'name', 'user_id',  'upload_success'];
 }

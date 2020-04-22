@@ -87,7 +87,7 @@ export default {
                     headers: {
                         Accept: "application/vnd.vimeo.*+json;version=3.4"
                     }, 
-                    chunkSize: 4194304
+                    // chunkSize: 4194304
                 });
 
             this.uppy.on("upload", async data => {
