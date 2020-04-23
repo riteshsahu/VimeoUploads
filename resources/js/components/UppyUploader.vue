@@ -31,7 +31,8 @@ export default {
     data() {
         return {
             selectedFile: null,
-            isUploadButtonDisabled: true
+            isUploadButtonDisabled: true,
+            createdVideoData: null
         };
     },
     mounted() {
@@ -60,7 +61,6 @@ export default {
                     hideUploadButton: true
                 })
                 .use(Tus, {
-                    endpoint: "/me/videos",
                     resume: true,
                     autoRetry: true,
                     retryDelays: [0, 1000, 3000, 5000],
@@ -68,13 +68,14 @@ export default {
                     limit: 1,
                     headers: {
                         Accept: "application/vnd.vimeo.*+json;version=3.4"
-                    }, 
-                    // chunkSize: 4194304
+                    },
+                    chunkSize: 4194304          // chunk size set to 4 mb
                 });
 
             this.uppy.on("upload-success", (file, response) => {
                 this.selectedFile = null;
                 this.isUploadButtonDisabled = false;
+                this.updateVideoStatusToSuccess();
             });
 
             this.uppy.on("upload-error", (file, error, response) => {
@@ -99,8 +100,35 @@ export default {
 
         startUpload() {
             this.isUploadButtonDisabled = true;
-            this.uppy.upload();
+            this.createVideo().then(data => {
+                this.createdVideoData = data.data.data;
+                this.uppy.getPlugin("Tus").setOptions({
+                    uploadUrl: data.headers.location
+                });
+                this.uppy.upload();
+            });
         },
+
+        updateVideoStatusToSuccess() {
+            return axios
+                .patch(`/me/videos/${this.createdVideoData.id}`, {
+                    upload_success: true
+                })
+                .then(() => {
+                    console.log("Video uploaded succesfully");
+                });
+        },
+
+        createVideo() {
+            return axios
+                .post(`/me/videos/`, {
+                    filename: this.selectedFile.name,
+                    size: this.selectedFile.size
+                })
+                .then(data => {
+                    return data;
+                });
+        }
     }
 };
 </script>
