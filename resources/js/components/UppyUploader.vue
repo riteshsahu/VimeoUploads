@@ -61,20 +61,20 @@ export default {
                 })
                 .use(Tus, {
                     endpoint: "/me/videos",
+                    // endpoint: "https://master.tus.io/files/",
                     resume: true,
                     autoRetry: true,
                     retryDelays: [0, 1000, 3000, 5000],
                     metaFields: null,
-                    limit: 1,
-                    headers: {
-                        Accept: "application/vnd.vimeo.*+json;version=3.4"
-                    }, 
-                    // chunkSize: 4194304
+                    limit: 1
+                    // chunkSize: 4194304 // set chunk size to 4 mb
                 });
 
             this.uppy.on("upload-success", (file, response) => {
-                this.selectedFile = null;
+                console.log("upload sucessd");
                 this.isUploadButtonDisabled = false;
+                this.updateVideoStatusToSuccess(btoa(this.selectedFile.id));
+                this.selectedFile = null;
             });
 
             this.uppy.on("upload-error", (file, error, response) => {
@@ -88,6 +88,11 @@ export default {
 
             this.uppy.on("file-added", file => {
                 this.selectedFile = file;
+
+                this.uppy.setMeta({
+                    fileId: file.id
+                });
+
                 this.isUploadButtonDisabled = false;
             });
 
@@ -101,6 +106,16 @@ export default {
             this.isUploadButtonDisabled = true;
             this.uppy.upload();
         },
+
+        updateVideoStatusToSuccess(id) {
+            axios
+                .patch(`/me/videos/${id}`, {
+                    upload_success: true
+                })
+                .then(() => {
+                    console.log("Video uploaded succesfully");
+                });
+        }
     }
 };
 </script>

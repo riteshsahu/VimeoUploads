@@ -8,6 +8,7 @@ use App\Traits\UppyUploaderTrait;
 use Illuminate\Support\Facades\Storage;
 use Vimeo\Laravel\Facades\Vimeo;
 use Illuminate\Support\Str;
+use GuzzleHttp\Client;
 
 class VideoController extends Controller
 {
@@ -16,39 +17,57 @@ class VideoController extends Controller
         // Create the Video
         $uploadMetadata = $request->header("upload-metadata");
         $uploadMetadata = explode(',', $uploadMetadata);
-        $parsedMetadata = [];
+        $metaData = [];
 
-        foreach ($uploadMetadata as $metaData) {
-            $data = explode(' ', $metaData);
-            $data[1] = base64_decode($data[1]);
-            $parsedMetadata[$data[0]] = $data[1];
+        foreach ($uploadMetadata as $meta) {
+            $data = explode(' ', $meta);
+            $metaData[$data[0]] = $data[1];
         }
 
-        $video_response =  Vimeo::request(
-            '/me/videos',
-            [
-                'upload' => [
-                    'approach' => 'tus',
-                    "size" => $request->header('upload-length'),
-                    
-                ],
-                "name" => substr($parsedMetadata['filename'], 0, 127)
-            ],
-            'POST'
-        );
+        $fileName = base64_decode($metaData['filename']);
+        $fileId = $metaData['fileId'];
+
+        // $video_response =  Vimeo::request(
+        //     '/me/videos',
+        //     [
+        //         'upload' => [
+        //             'approach' => 'tus',
+        //             "size" => $request->header('upload-length'),
+
+        //         ],
+        //         "name" => substr($fileName, 0, 127)
+        //     ],
+        //     'POST'
+        // );
+
+        $client = new Client([
+            "headers" => [
+                'upload-length' => $request->header('upload-length'),
+                "sec-fetch-dest" => "empty",
+                "sec-fetch-mode" => "cors",
+                "sec-fetch-site" => "cross-site",
+                "tus-resumable" => "1.0.0"
+            ]
+        ]);
+
+        $res = $client->post('https://master.tus.io/files/');
+        $uploadLink = $res->getHeader("Location")[0];
 
         try {
             $videoData = [
                 'user_id' => auth()->user()->id,
-                "name" => substr($parsedMetadata['filename'], 0, 250),
-                "url" => $video_response["body"]["link"],
+                'video_id' => $fileId,
+                "name" => substr($fileName, 0, 250),
+                // "url" => $video_response["body"]["link"],
+                "url" => "testing",
             ];
 
             $video = Video::create($videoData);
 
             return response([
                 "data" => $video,
-            ])->header('Location', $video_response["body"]["upload"]["upload_link"]);
+                // ])->header('Location', $video_response["body"]["upload"]["upload_link"]);
+            ])->header('Location', $uploadLink);
         } catch (\Throwable $th) {
             return response()->json([
                 "data" => "Upload link not found.",
@@ -70,8 +89,6 @@ class VideoController extends Controller
             'upload_success' => $request->upload_success,
         ]);
 
-        return response()->json([
-            "data" => "Video Uploaded"
-        ]);
+        return $video->fresh();
     }
 }
