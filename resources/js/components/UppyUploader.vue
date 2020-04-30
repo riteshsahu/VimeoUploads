@@ -66,7 +66,12 @@ export default {
                     autoRetry: true,
                     retryDelays: [0, 1000, 3000, 5000],
                     metaFields: null,
-                    limit: 1
+                    limit: 1,
+                    headers: {
+                        "X-CSRF-TOKEN": document
+                            .querySelector('meta[name="csrf-token"]')
+                            .getAttribute("content") // from <meta name="csrf-token" content="{{ csrf_token() }}">
+                    }
                     // chunkSize: 4194304 // set chunk size to 4 mb
                 });
 
@@ -99,6 +104,12 @@ export default {
             this.uppy.on("file-removed", file => {
                 this.selectedFile = null;
                 this.isUploadButtonDisabled = true;
+            });
+
+            this.uppy.on("upload-progress", async (file, progress) => {
+                this.uppy.getPlugin("Tus").setOptions({
+                    headers: {}
+                });
             });
         },
 
