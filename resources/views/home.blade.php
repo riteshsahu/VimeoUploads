@@ -9,6 +9,7 @@
 
                 <div class="card-body">
                     <uppy-uploader></uppy-uploader>
+                    <!-- <vimeo-uppy-uploader></vimeo-uppy-uploader> -->
                 </div>
             </div>
         </div>

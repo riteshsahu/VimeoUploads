@@ -18,4 +18,4 @@ Auth::routes();
 
 
 Route::post('/me/videos', 'VideoController@store');
-Route::patch('/me/videos/{video_id}', 'VideoController@update');
+Route::patch('/me/videos/{video}', 'VideoController@update');

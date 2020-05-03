@@ -16,6 +16,7 @@ class CreateVideosTable extends Migration
         Schema::create('videos', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('user_id');
+            $table->string('video_id');
             $table->string('name');
             $table->string('url');
             $table->boolean('upload_success')->default(false);
