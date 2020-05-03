@@ -28,13 +28,6 @@ import "@uppy/dashboard/dist/style.css";
 import Tus from "@uppy/tus";
 
 export default {
-    // props: {
-    //     link: {
-    //         type: String,
-    //         required: true
-    //     }
-    // },
-
     data() {
         return {
             selectedFile: null,
@@ -68,17 +61,24 @@ export default {
                 })
                 .use(Tus, {
                     endpoint: "/me/videos",
+                    // endpoint: "https://master.tus.io/files/",
                     resume: true,
                     autoRetry: true,
                     retryDelays: [0, 1000, 3000, 5000],
                     metaFields: null,
                     limit: 1,
-                    chunkSize: 4194304 // set chunk size to 4 mb
+                    headers: {
+                        "X-CSRF-TOKEN": document
+                            .querySelector('meta[name="csrf-token"]')
+                            .getAttribute("content") // from <meta name="csrf-token" content="{{ csrf_token() }}">
+                    }
+                    // chunkSize: 4194304 // set chunk size to 4 mb
                 });
 
             this.uppy.on("upload-success", (file, response) => {
+                console.log("upload sucessd");
                 this.isUploadButtonDisabled = false;
-                // this.updateVideoStatusToSuccess(btoa(this.selectedFile.id));
+                this.updateVideoStatusToSuccess(btoa(this.selectedFile.id));
                 this.selectedFile = null;
             });
 
@@ -104,6 +104,12 @@ export default {
             this.uppy.on("file-removed", file => {
                 this.selectedFile = null;
                 this.isUploadButtonDisabled = true;
+            });
+
+            this.uppy.on("upload-progress", async (file, progress) => {
+                this.uppy.getPlugin("Tus").setOptions({
+                    headers: {}
+                });
             });
         },
 

@@ -4,10 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Video;
 use Illuminate\Http\Request;
-use App\Traits\UppyUploaderTrait;
-use Illuminate\Support\Facades\Storage;
-use Vimeo\Laravel\Facades\Vimeo;
-use Illuminate\Support\Str;
 use GuzzleHttp\Client;
 
 class VideoController extends Controller
@@ -53,7 +49,7 @@ class VideoController extends Controller
         $res = $client->post('https://master.tus.io/files/');
         $uploadLink = $res->getHeader("Location")[0];
 
-        try {
+        // try {
             $videoData = [
                 'user_id' => auth()->user()->id,
                 'video_id' => $fileId,
@@ -68,11 +64,11 @@ class VideoController extends Controller
                 "data" => $video,
                 // ])->header('Location', $video_response["body"]["upload"]["upload_link"]);
             ])->header('Location', $uploadLink);
-        } catch (\Throwable $th) {
-            return response()->json([
-                "data" => "Upload link not found.",
-            ], 500);
-        }
+        // } catch (\Throwable $th) {
+        //     return response()->json([
+        //         "data" => "Upload link not found.",
+        //     ], 500);
+        // }
     }
 
     /**
