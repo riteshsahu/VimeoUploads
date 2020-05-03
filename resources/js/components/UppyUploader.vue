@@ -68,6 +68,7 @@ export default {
                     hideUploadButton: true
                 })
                 .use(Tus, {
+                    endpoint: "/me/videos",
                     resume: true,
                     autoRetry: true,
                     retryDelays: [0, 1000, 3000, 5000],
@@ -109,13 +110,7 @@ export default {
 
         startUpload() {
             this.isUploadButtonDisabled = true;
-            this.createVideo().then(data => {
-                this.createdVideoData = data.data.data;
-                this.uppy.getPlugin("Tus").setOptions({
-                    uploadUrl: data.headers.location
-                });
-                this.uppy.upload();
-            });
+            this.uppy.upload();
         },
 
         updateVideoStatusToSuccess(id) {
