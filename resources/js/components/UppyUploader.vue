@@ -68,13 +68,16 @@ export default {
                     hideUploadButton: true
                 })
                 .use(Tus, {
-                    endpoint: "/me/videos",
+                    endpoint: "/me/videos",     // trailing slash
                     resume: true,
                     autoRetry: true,
                     retryDelays: [0, 1000, 3000, 5000],
                     metaFields: null,
                     limit: 1,
-                    chunkSize: 4194304 // set chunk size to 4 mb
+                    chunkSize: 10485760, // set chunk size to 10 mb
+                    // headers: {
+                    //     // Accept: "application/vnd.vimeo.*+json;version=3.4"
+                    // }
                 });
 
             this.uppy.on("upload-success", (file, response) => {
